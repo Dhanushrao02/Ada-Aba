@@ -1,0 +1,99 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+string ltrim(const string &);
+string rtrim(const string &);
+
+/*
+ * Complete the 'hexagonalGrid' function below.
+ *
+ * The function is expected to return a STRING.
+ * The function accepts following parameters:
+ *  1. STRING a
+ *  2. STRING b
+ */
+
+#include <cstdio>
+#include <map>
+using namespace std;
+
+
+map<int,bool> cache;
+
+bool possible(int bot, int top, int length) {
+    if (length == 0) {
+        return true;
+    }
+    map<int,bool>::iterator it = cache.find(top * 1024 + bot);
+    if (it != cache.end()) {
+        return it->second;
+    }
+
+    //printf("Trying\n%d\n%d\n%d\n", top, bot, length);
+    bool can = false;
+
+    // Special case if bot is blacked out
+    if (bot & 1) {
+        if (top & 1) {
+            can = possible(bot >> 1, top >> 1, length - 1);
+        } else if (length > 1 && !(top & 2)) {
+            can = possible (bot >> 1, (top >> 1) | 1, length - 1);
+        }
+        cache[top*1024 + bot] = can;
+        return can;
+    }
+    
+    // Try left slant
+    if (!(top & 1)) {
+        can = possible(bot >> 1, top >> 1, length - 1);
+    } else {
+        //Try right slant
+        if (!(top & 2) && length > 1) {
+            can = possible(bot >> 1, (top >> 1) | 1, length - 1);
+        } else if (length > 1 && !(bot & 2)) {
+            // Try the single horizontal
+            can = possible(bot >> 2, top >> 2, length - 2);
+        }
+    }
+
+    cache[top*1024 + bot] = can;
+    return can;
+}
+
+int main() {
+    int T;
+    scanf("%d", &T);
+    for (int i = 0; i < T; ++i) {
+        int N;
+        scanf("%d\n", &N);
+
+        int top = 0;
+        for (int j = 0; j < N; ++j) {
+            char temp;
+            scanf("%c", &temp);
+            if (temp == '1') {
+                top |= 1 << j;
+            }
+        }
+
+        getchar();
+
+        int bot = 0;
+        for (int j = 0; j < N; ++j) {
+            char temp;
+            scanf("%c", &temp);
+            if (temp == '1') {
+                bot |= 1 << j;
+            }
+        }
+
+        cache.clear();
+        if (possible(bot, top, N)) {
+            printf("YES\n");
+        } else {
+            printf("NO\n");
+        }
+    }  
+    return 0;
+}
